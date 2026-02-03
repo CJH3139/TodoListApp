@@ -771,6 +771,177 @@
             border: 0;
         }
 
+        /* Auth Modal Styles */
+        .auth-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .auth-overlay.hidden {
+            display: none;
+        }
+
+        .auth-modal {
+            background: var(--paper);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 400px;
+            padding: 32px;
+            margin: 20px;
+        }
+
+        .auth-modal h2 {
+            font-family: 'Crimson Pro', serif;
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            color: var(--ink);
+        }
+
+        .auth-modal p {
+            color: var(--muted);
+            margin-bottom: 24px;
+        }
+
+        .auth-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: #f3e9d7;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .auth-tab.active {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+        }
+
+        .auth-form .form-group {
+            margin-bottom: 16px;
+        }
+
+        .auth-form .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: var(--muted);
+            font-size: 0.85rem;
+        }
+
+        .auth-form .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid rgba(0, 0, 0, 0.15);
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+
+        .auth-error {
+            background: #fbd5cf;
+            color: var(--bad);
+            padding: 10px 14px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .auth-error.active {
+            display: block;
+        }
+
+        .auth-form .btn {
+            width: 100%;
+            padding: 14px;
+            font-size: 1rem;
+        }
+
+        /* User Info in Header */
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 14px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .user-info .username {
+            font-weight: 600;
+            color: #f9f5ef;
+        }
+
+        .user-info .logout-btn {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #f9f5ef;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .user-info .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Sync Status */
+        .sync-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .sync-status .sync-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--good);
+        }
+
+        .sync-status.syncing .sync-dot {
+            background: var(--warn);
+            animation: pulse 1s infinite;
+        }
+
+        .sync-status.error .sync-dot {
+            background: var(--bad);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
         @media (max-width: 860px) {
             header {
                 grid-template-columns: 1fr;
@@ -841,6 +1012,49 @@
     </style>
 </head>
 <body>
+    <!-- Auth Modal -->
+    <div class="auth-overlay" id="authOverlay">
+        <div class="auth-modal">
+            <h2>Welcome</h2>
+            <p>Sign in to sync your tasks across devices</p>
+            <div class="auth-tabs">
+                <button class="auth-tab active" data-auth-tab="login">Login</button>
+                <button class="auth-tab" data-auth-tab="register">Register</button>
+            </div>
+            <div class="auth-error" id="authError"></div>
+
+            <!-- Login Form -->
+            <form class="auth-form active" id="loginForm">
+                <div class="form-group">
+                    <label for="loginUsername">Username</label>
+                    <input type="text" id="loginUsername" placeholder="Enter username" autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" placeholder="Enter password" autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn btn-primary">Login</button>
+            </form>
+
+            <!-- Register Form -->
+            <form class="auth-form" id="registerForm">
+                <div class="form-group">
+                    <label for="registerUsername">Username</label>
+                    <input type="text" id="registerUsername" placeholder="Choose a username (3-30 chars)" autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword">Password</label>
+                    <input type="password" id="registerPassword" placeholder="Choose a password (6+ chars)" autocomplete="new-password">
+                </div>
+                <div class="form-group">
+                    <label for="registerConfirm">Confirm Password</label>
+                    <input type="password" id="registerConfirm" placeholder="Confirm your password" autocomplete="new-password">
+                </div>
+                <button type="submit" class="btn btn-primary">Create Account</button>
+            </form>
+        </div>
+    </div>
+
     <div class="container">
         <header>
             <div class="header-left">
@@ -853,6 +1067,14 @@
                 </nav>
             </div>
             <div class="header-actions">
+                <div class="user-info" id="userInfo" style="display: none;">
+                    <div class="sync-status" id="syncStatus">
+                        <span class="sync-dot"></span>
+                        <span class="sync-text">Synced</span>
+                    </div>
+                    <span class="username" id="usernameDisplay"></span>
+                    <button class="logout-btn" id="logoutBtn">Logout</button>
+                </div>
                 <button class="btn btn-primary" id="addTaskBtn">+ Add Task</button>
                 <button class="btn btn-secondary voice-btn" id="voiceAddBtn" title="Add task by voice">🔊</button>
             </div>
@@ -1000,6 +1222,15 @@
     <script>
         const STORAGE_KEY = 'todo-atlas.v2';
         const STORAGE_VERSION = 3;
+        const AUTH_TOKEN_KEY = 'todo-atlas.auth-token';
+        const AUTH_USER_KEY = 'todo-atlas.auth-user';
+        const API_BASE = window.location.origin;
+
+        // Auth state
+        let authToken = localStorage.getItem(AUTH_TOKEN_KEY);
+        let currentUser = JSON.parse(localStorage.getItem(AUTH_USER_KEY) || 'null');
+        let isSyncing = false;
+        let syncTimeout = null;
 
         let state = {
             version: STORAGE_VERSION,
@@ -1048,18 +1279,170 @@
             taskNotes: document.getElementById('taskNotes'),
             taskRecurrence: document.getElementById('taskRecurrence'),
             taskNameError: document.getElementById('taskNameError'),
-            taskDateError: document.getElementById('taskDateError')
+            taskDateError: document.getElementById('taskDateError'),
+            // Auth elements
+            authOverlay: document.getElementById('authOverlay'),
+            authError: document.getElementById('authError'),
+            loginForm: document.getElementById('loginForm'),
+            registerForm: document.getElementById('registerForm'),
+            loginUsername: document.getElementById('loginUsername'),
+            loginPassword: document.getElementById('loginPassword'),
+            registerUsername: document.getElementById('registerUsername'),
+            registerPassword: document.getElementById('registerPassword'),
+            registerConfirm: document.getElementById('registerConfirm'),
+            userInfo: document.getElementById('userInfo'),
+            usernameDisplay: document.getElementById('usernameDisplay'),
+            logoutBtn: document.getElementById('logoutBtn'),
+            syncStatus: document.getElementById('syncStatus')
         };
 
         const tabButtons = Array.from(document.querySelectorAll('.tab-btn'));
+        const authTabs = Array.from(document.querySelectorAll('[data-auth-tab]'));
         let dragCategoryName = null;
         let dragGhost = null;
         let dragOverChip = null;
         let dragOverPosition = null;
 
-        
+
         const todayISO = () => new Date().toISOString().split('T')[0];
         els.taskDate.value = todayISO();
+
+        // ===== AUTH FUNCTIONS =====
+        function showAuthError(message) {
+            els.authError.textContent = message;
+            els.authError.classList.add('active');
+        }
+
+        function hideAuthError() {
+            els.authError.classList.remove('active');
+        }
+
+        function updateAuthUI() {
+            if (currentUser && authToken) {
+                els.authOverlay.classList.add('hidden');
+                els.userInfo.style.display = 'flex';
+                els.usernameDisplay.textContent = currentUser.username;
+            } else {
+                els.authOverlay.classList.remove('hidden');
+                els.userInfo.style.display = 'none';
+            }
+        }
+
+        function setSyncStatus(status) {
+            els.syncStatus.classList.remove('syncing', 'error');
+            const textEl = els.syncStatus.querySelector('.sync-text');
+            if (status === 'syncing') {
+                els.syncStatus.classList.add('syncing');
+                textEl.textContent = 'Syncing...';
+            } else if (status === 'error') {
+                els.syncStatus.classList.add('error');
+                textEl.textContent = 'Sync error';
+            } else {
+                textEl.textContent = 'Synced';
+            }
+        }
+
+        async function apiRequest(endpoint, options = {}) {
+            const url = `${API_BASE}${endpoint}`;
+            const headers = {
+                'Content-Type': 'application/json',
+                ...options.headers
+            };
+            if (authToken) {
+                headers['Authorization'] = `Bearer ${authToken}`;
+            }
+            const response = await fetch(url, { ...options, headers });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || 'Request failed');
+            }
+            return data;
+        }
+
+        async function register(username, password) {
+            const data = await apiRequest('/api/register', {
+                method: 'POST',
+                body: JSON.stringify({ username, password })
+            });
+            authToken = data.token;
+            currentUser = data.user;
+            localStorage.setItem(AUTH_TOKEN_KEY, authToken);
+            localStorage.setItem(AUTH_USER_KEY, JSON.stringify(currentUser));
+            return data;
+        }
+
+        async function login(username, password) {
+            const data = await apiRequest('/api/login', {
+                method: 'POST',
+                body: JSON.stringify({ username, password })
+            });
+            authToken = data.token;
+            currentUser = data.user;
+            localStorage.setItem(AUTH_TOKEN_KEY, authToken);
+            localStorage.setItem(AUTH_USER_KEY, JSON.stringify(currentUser));
+            return data;
+        }
+
+        function logout() {
+            authToken = null;
+            currentUser = null;
+            localStorage.removeItem(AUTH_TOKEN_KEY);
+            localStorage.removeItem(AUTH_USER_KEY);
+            // Reset state but keep local data
+            updateAuthUI();
+        }
+
+        async function verifyToken() {
+            if (!authToken) return false;
+            try {
+                await apiRequest('/api/verify');
+                return true;
+            } catch (err) {
+                // Token invalid, clear auth
+                logout();
+                return false;
+            }
+        }
+
+        async function fetchTasksFromServer() {
+            if (!authToken) return null;
+            try {
+                const data = await apiRequest('/api/tasks');
+                return data;
+            } catch (err) {
+                console.error('Failed to fetch tasks:', err);
+                return null;
+            }
+        }
+
+        async function syncTasksToServer() {
+            if (!authToken || isSyncing) return;
+            isSyncing = true;
+            setSyncStatus('syncing');
+            try {
+                await apiRequest('/api/tasks', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        tasks: state.tasks,
+                        schoolCategories: state.schoolCategories,
+                        ui: state.ui
+                    })
+                });
+                setSyncStatus('synced');
+            } catch (err) {
+                console.error('Failed to sync tasks:', err);
+                setSyncStatus('error');
+            } finally {
+                isSyncing = false;
+            }
+        }
+
+        function debouncedSync() {
+            if (syncTimeout) clearTimeout(syncTimeout);
+            syncTimeout = setTimeout(() => {
+                syncTasksToServer();
+            }, 1000);
+        }
 
         function speechSupported() {
             return 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window;
@@ -1151,53 +1534,81 @@
                 ui: state.ui
             };
             localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+            // Sync to server if authenticated
+            if (authToken) {
+                debouncedSync();
+            }
         }
 
-        function loadState() {
-            const raw = localStorage.getItem(STORAGE_KEY);
-            if (!raw) {
-                render();
-                return;
-            }
-
-            try {
-                const data = JSON.parse(raw);
-                if (Array.isArray(data)) {
-                    state.tasks = data.map(migrateTaskV1);
-                    state.schoolCategories = [];
-                } else if (data.version === STORAGE_VERSION) {
-                    state.tasks = data.tasks || [];
-                    state.schoolCategories = Array.isArray(data.schoolCategories) ? data.schoolCategories : [];
-                    state.ui = { ...state.ui, ...data.ui };
-                    if (data.ui && data.ui.myDay && !data.ui.today) {
-                        state.ui.today = data.ui.myDay;
-                    }
-                    if (!state.ui.section) {
-                        state.ui.section = 'general';
-                    }
-                    if (!state.ui.page) {
-                        state.ui.page = state.ui.section;
-                    }
-                    if (!state.ui.category) {
-                        state.ui.category = 'all';
-                    }
-                } else {
-                    state.tasks = (data.tasks || []).map(migrateTaskV1);
-                    state.schoolCategories = [];
+        function loadStateFromData(data) {
+            if (Array.isArray(data)) {
+                state.tasks = data.map(migrateTaskV1);
+                state.schoolCategories = [];
+            } else if (data.version === STORAGE_VERSION || data.tasks) {
+                state.tasks = data.tasks || [];
+                state.schoolCategories = Array.isArray(data.schoolCategories) ? data.schoolCategories : [];
+                state.ui = { ...state.ui, ...data.ui };
+                if (data.ui && data.ui.myDay && !data.ui.today) {
+                    state.ui.today = data.ui.myDay;
                 }
-                state.tasks = (state.tasks || []).map(task => ({
-                    ...task,
-                    section: task.section || 'general',
-                    category: task.category || ''
-                }));
-                if (state.ui.page !== 'school') {
+                if (!state.ui.section) {
+                    state.ui.section = 'general';
+                }
+                if (!state.ui.page) {
+                    state.ui.page = state.ui.section;
+                }
+                if (!state.ui.category) {
                     state.ui.category = 'all';
                 }
-                render();
-            } catch (err) {
-                console.error('Failed to load', err);
-                render();
+            } else {
+                state.tasks = (data.tasks || []).map(migrateTaskV1);
+                state.schoolCategories = [];
             }
+            state.tasks = (state.tasks || []).map(task => ({
+                ...task,
+                section: task.section || 'general',
+                category: task.category || ''
+            }));
+            if (state.ui.page !== 'school') {
+                state.ui.category = 'all';
+            }
+        }
+
+        async function loadState() {
+            // First load from localStorage
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (raw) {
+                try {
+                    const data = JSON.parse(raw);
+                    loadStateFromData(data);
+                } catch (err) {
+                    console.error('Failed to parse local storage', err);
+                }
+            }
+
+            // If authenticated, try to load from server
+            if (authToken) {
+                const serverData = await fetchTasksFromServer();
+                if (serverData && serverData.tasks) {
+                    // Merge or replace with server data
+                    // Server data takes precedence
+                    loadStateFromData(serverData);
+                    // Save merged state to localStorage
+                    const payload = {
+                        version: STORAGE_VERSION,
+                        tasks: state.tasks,
+                        schoolCategories: state.schoolCategories,
+                        ui: state.ui
+                    };
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+                    setSyncStatus('synced');
+                } else if (state.tasks.length > 0) {
+                    // We have local data but no server data - sync local to server
+                    syncTasksToServer();
+                }
+            }
+
+            render();
         }
         function migrateTaskV1(task) {
             return {
@@ -2208,7 +2619,87 @@
             }
         });
 
-        loadState();
+        // ===== AUTH EVENT LISTENERS =====
+        authTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                authTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                const tabName = tab.dataset.authTab;
+                els.loginForm.classList.toggle('active', tabName === 'login');
+                els.registerForm.classList.toggle('active', tabName === 'register');
+                hideAuthError();
+            });
+        });
+
+        els.loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideAuthError();
+            const username = els.loginUsername.value.trim();
+            const password = els.loginPassword.value;
+            if (!username || !password) {
+                showAuthError('Please enter username and password');
+                return;
+            }
+            try {
+                await login(username, password);
+                updateAuthUI();
+                await loadState();
+            } catch (err) {
+                showAuthError(err.message);
+            }
+        });
+
+        els.registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideAuthError();
+            const username = els.registerUsername.value.trim();
+            const password = els.registerPassword.value;
+            const confirm = els.registerConfirm.value;
+            if (!username || !password) {
+                showAuthError('Please enter username and password');
+                return;
+            }
+            if (password !== confirm) {
+                showAuthError('Passwords do not match');
+                return;
+            }
+            if (password.length < 6) {
+                showAuthError('Password must be at least 6 characters');
+                return;
+            }
+            try {
+                await register(username, password);
+                updateAuthUI();
+                // After registration, sync any existing local tasks to server
+                if (state.tasks.length > 0) {
+                    await syncTasksToServer();
+                }
+                render();
+            } catch (err) {
+                showAuthError(err.message);
+            }
+        });
+
+        els.logoutBtn.addEventListener('click', () => {
+            if (confirm('Are you sure you want to logout?')) {
+                logout();
+            }
+        });
+
+        // ===== INITIALIZATION =====
+        async function init() {
+            updateAuthUI();
+            if (authToken) {
+                const valid = await verifyToken();
+                if (!valid) {
+                    // Token was invalid, show login
+                    updateAuthUI();
+                }
+            }
+            await loadState();
+        }
+
+        init();
     </script>
 </body>
 </html>
