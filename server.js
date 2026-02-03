@@ -330,8 +330,7 @@ function extractOutputText(data) {
 // Start server after database is initialized
 initDatabase().then(() => {
     app.listen(PORT, () => {
-        console.log(`TodoListApp running at http://localhost:${PORT}`);
-        console.log(`Open http://localhost:${PORT}/todo-app.html in your browser`);
+        console.log(`TodoListApp server started on port ${PORT}`);
     });
 }).catch(err => {
     console.error('Failed to initialize database:', err);
