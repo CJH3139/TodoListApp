@@ -10,6 +10,35 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-change-me';
 const JWT_EXPIRES_IN = '7d';
+const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
+
+// OAuth Configuration
+const OAUTH_CONFIG = {
+    discord: {
+        clientId: process.env.DISCORD_CLIENT_ID,
+        clientSecret: process.env.DISCORD_CLIENT_SECRET,
+        authorizeUrl: 'https://discord.com/api/oauth2/authorize',
+        tokenUrl: 'https://discord.com/api/oauth2/token',
+        userUrl: 'https://discord.com/api/users/@me',
+        scopes: 'identify'
+    },
+    github: {
+        clientId: process.env.GITHUB_CLIENT_ID,
+        clientSecret: process.env.GITHUB_CLIENT_SECRET,
+        authorizeUrl: 'https://github.com/login/oauth/authorize',
+        tokenUrl: 'https://github.com/login/oauth/access_token',
+        userUrl: 'https://api.github.com/user',
+        scopes: 'read:user'
+    },
+    google: {
+        clientId: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        authorizeUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
+        tokenUrl: 'https://oauth2.googleapis.com/token',
+        userUrl: 'https://www.googleapis.com/oauth2/v2/userinfo',
+        scopes: 'openid profile'
+    }
+};
 
 // Initialize Turso database client
 const db = createClient({
@@ -23,7 +52,9 @@ async function initDatabase() {
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
-            password_hash TEXT NOT NULL,
+            password_hash TEXT,
+            oauth_provider TEXT,
+            oauth_id TEXT,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     `);
@@ -66,6 +97,161 @@ function authenticateToken(req, res, next) {
         next();
     });
 }
+
+// Helper: Find or create OAuth user
+async function findOrCreateOAuthUser(provider, oauthId, username) {
+    // Check if user exists with this OAuth
+    const existing = await db.execute({
+        sql: 'SELECT * FROM users WHERE oauth_provider = ? AND oauth_id = ?',
+        args: [provider, oauthId]
+    });
+
+    if (existing.rows.length > 0) {
+        return existing.rows[0];
+    }
+
+    // Create unique username if needed
+    let finalUsername = username;
+    let counter = 1;
+    while (true) {
+        const check = await db.execute({
+            sql: 'SELECT id FROM users WHERE username = ?',
+            args: [finalUsername]
+        });
+        if (check.rows.length === 0) break;
+        finalUsername = `${username}${counter}`;
+        counter++;
+    }
+
+    // Create new user
+    const result = await db.execute({
+        sql: 'INSERT INTO users (username, oauth_provider, oauth_id) VALUES (?, ?, ?)',
+        args: [finalUsername, provider, oauthId]
+    });
+
+    return {
+        id: Number(result.lastInsertRowid),
+        username: finalUsername,
+        oauth_provider: provider,
+        oauth_id: oauthId
+    };
+}
+
+// OAuth: Start authorization
+app.get('/api/oauth/:provider', (req, res) => {
+    const { provider } = req.params;
+    const config = OAUTH_CONFIG[provider];
+
+    if (!config || !config.clientId) {
+        return res.status(400).json({ error: `OAuth provider ${provider} not configured` });
+    }
+
+    const redirectUri = `${BASE_URL}/api/oauth/${provider}/callback`;
+    const params = new URLSearchParams({
+        client_id: config.clientId,
+        redirect_uri: redirectUri,
+        response_type: 'code',
+        scope: config.scopes
+    });
+
+    // Google requires additional params
+    if (provider === 'google') {
+        params.append('access_type', 'offline');
+        params.append('prompt', 'consent');
+    }
+
+    res.redirect(`${config.authorizeUrl}?${params.toString()}`);
+});
+
+// OAuth: Handle callback
+app.get('/api/oauth/:provider/callback', async (req, res) => {
+    const { provider } = req.params;
+    const { code, error } = req.query;
+    const config = OAUTH_CONFIG[provider];
+
+    if (error || !code) {
+        return res.redirect(`/todo-app.html?auth_error=${encodeURIComponent(error || 'No code received')}`);
+    }
+
+    if (!config || !config.clientId) {
+        return res.redirect('/todo-app.html?auth_error=Provider+not+configured');
+    }
+
+    try {
+        const redirectUri = `${BASE_URL}/api/oauth/${provider}/callback`;
+
+        // Exchange code for token
+        const tokenParams = new URLSearchParams({
+            client_id: config.clientId,
+            client_secret: config.clientSecret,
+            code: code,
+            redirect_uri: redirectUri,
+            grant_type: 'authorization_code'
+        });
+
+        const tokenRes = await fetch(config.tokenUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Accept': 'application/json'
+            },
+            body: tokenParams.toString()
+        });
+
+        const tokenData = await tokenRes.json();
+
+        if (!tokenData.access_token) {
+            console.error('Token error:', tokenData);
+            return res.redirect('/todo-app.html?auth_error=Failed+to+get+token');
+        }
+
+        // Get user info
+        const userRes = await fetch(config.userUrl, {
+            headers: {
+                'Authorization': `Bearer ${tokenData.access_token}`,
+                'Accept': 'application/json',
+                'User-Agent': 'TodoListApp'
+            }
+        });
+
+        const userData = await userRes.json();
+
+        // Extract user info based on provider
+        let oauthId, username;
+        if (provider === 'discord') {
+            oauthId = userData.id;
+            username = userData.username;
+        } else if (provider === 'github') {
+            oauthId = String(userData.id);
+            username = userData.login;
+        } else if (provider === 'google') {
+            oauthId = userData.id;
+            username = userData.name?.replace(/\s+/g, '') || userData.email?.split('@')[0] || 'user';
+        }
+
+        if (!oauthId) {
+            console.error('User data error:', userData);
+            return res.redirect('/todo-app.html?auth_error=Failed+to+get+user+info');
+        }
+
+        // Find or create user
+        const user = await findOrCreateOAuthUser(provider, oauthId, username);
+
+        // Generate JWT
+        const token = jwt.sign(
+            { id: user.id, username: user.username },
+            JWT_SECRET,
+            { expiresIn: JWT_EXPIRES_IN }
+        );
+
+        // Redirect with token
+        res.redirect(`/todo-app.html?auth_token=${token}&auth_user=${encodeURIComponent(JSON.stringify({ id: user.id, username: user.username }))}`);
+
+    } catch (err) {
+        console.error('OAuth error:', err);
+        res.redirect('/todo-app.html?auth_error=Authentication+failed');
+    }
+});
 
 // Register endpoint
 app.post('/api/register', async (req, res) => {
@@ -137,6 +323,11 @@ app.post('/api/login', async (req, res) => {
         }
 
         const user = result.rows[0];
+
+        // Check if this is an OAuth-only user
+        if (!user.password_hash) {
+            return res.status(401).json({ error: 'This account uses OAuth login. Please sign in with ' + user.oauth_provider });
+        }
 
         // Check password
         if (!bcrypt.compareSync(password, user.password_hash)) {
