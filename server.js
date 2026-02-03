@@ -44,6 +44,11 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname)));
 
+// Redirect root to todo-app.html
+app.get('/', (req, res) => {
+    res.redirect('/todo-app.html');
+});
+
 // Auth middleware
 function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization'];
