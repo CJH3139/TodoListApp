@@ -778,11 +778,18 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(28, 27, 25, 0.75);
+            backdrop-filter: blur(4px);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 1000;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         .auth-overlay.hidden {
@@ -790,47 +797,159 @@
         }
 
         .auth-modal {
-            background: var(--paper);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
             width: 100%;
-            max-width: 400px;
-            padding: 32px;
+            max-width: 420px;
             margin: 20px;
+            overflow: hidden;
+            animation: slideUp 0.3s ease;
         }
 
-        .auth-modal h2 {
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .auth-header {
+            background: linear-gradient(135deg, #1f1a17 0%, #2d2824 100%);
+            padding: 28px 32px;
+            text-align: center;
+        }
+
+        .auth-header h2 {
             font-family: 'Crimson Pro', serif;
-            font-size: 1.8rem;
-            margin-bottom: 8px;
-            color: var(--ink);
+            font-size: 1.75rem;
+            color: #fff;
+            margin: 0 0 6px 0;
+            font-weight: 600;
         }
 
-        .auth-modal p {
-            color: var(--muted);
+        .auth-header p {
+            color: rgba(255, 255, 255, 0.7);
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        .auth-body {
+            padding: 28px 32px;
+        }
+
+        .oauth-buttons {
+            display: flex;
+            gap: 12px;
             margin-bottom: 24px;
+        }
+
+        .oauth-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px 8px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .oauth-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .oauth-btn:active {
+            transform: translateY(0);
+        }
+
+        .oauth-btn.discord {
+            background: #5865F2;
+        }
+
+        .oauth-btn.discord:hover {
+            background: #4752c4;
+        }
+
+        .oauth-btn.github {
+            background: #24292e;
+        }
+
+        .oauth-btn.github:hover {
+            background: #1b1f23;
+        }
+
+        .oauth-btn.google {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+        }
+
+        .oauth-btn.google:hover {
+            background: #f8f8f8;
+            border-color: #d0d0d0;
+        }
+
+        .oauth-btn svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .oauth-btn.discord svg,
+        .oauth-btn.github svg {
+            fill: white;
+        }
+
+        .auth-divider {
+            display: flex;
+            align-items: center;
+            margin: 0 0 24px 0;
+            color: var(--muted);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .auth-divider::before,
+        .auth-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #e8e4de;
+        }
+
+        .auth-divider span {
+            padding: 0 16px;
         }
 
         .auth-tabs {
             display: flex;
-            gap: 8px;
-            margin-bottom: 24px;
+            background: #f5f1eb;
+            border-radius: 10px;
+            padding: 4px;
+            margin-bottom: 20px;
         }
 
         .auth-tab {
             flex: 1;
-            padding: 10px;
+            padding: 10px 16px;
             border: none;
-            background: #f3e9d7;
-            border-radius: 10px;
+            background: transparent;
+            border-radius: 8px;
             font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--muted);
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.2s ease;
+        }
+
+        .auth-tab:hover {
+            color: var(--ink);
         }
 
         .auth-tab.active {
-            background: var(--accent);
-            color: #fff;
+            background: #fff;
+            color: var(--ink);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
 
         .auth-form {
@@ -847,117 +966,82 @@
 
         .auth-form .form-group label {
             display: block;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             font-weight: 600;
-            color: var(--muted);
+            color: var(--ink);
             font-size: 0.85rem;
         }
 
         .auth-form .form-group input {
             width: 100%;
-            padding: 12px;
-            border: 1px solid rgba(0, 0, 0, 0.15);
+            padding: 14px 16px;
+            border: 2px solid #e8e4de;
             border-radius: 10px;
-            font-size: 1rem;
+            font-size: 0.95rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background: #fafaf8;
+        }
+
+        .auth-form .form-group input:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(31, 111, 120, 0.1);
+        }
+
+        .auth-form .form-group input::placeholder {
+            color: #aaa;
         }
 
         .auth-error {
-            background: #fbd5cf;
-            color: var(--bad);
-            padding: 10px 14px;
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            color: #b91c1c;
+            padding: 12px 16px;
             border-radius: 10px;
             margin-bottom: 16px;
-            font-size: 0.9rem;
+            font-size: 0.875rem;
             display: none;
+            border: 1px solid #fca5a5;
         }
 
         .auth-error.active {
             display: block;
         }
 
-        .auth-form .btn {
+        .auth-form .btn-primary {
             width: 100%;
             padding: 14px;
             font-size: 1rem;
+            border-radius: 10px;
+            margin-top: 8px;
         }
 
-        .oauth-divider {
-            display: flex;
-            align-items: center;
-            margin: 20px 0;
-            color: var(--muted);
-            font-size: 0.85rem;
+        .auth-footer {
+            padding: 20px 32px;
+            background: #fafaf8;
+            border-top: 1px solid #e8e4de;
+            text-align: center;
         }
 
-        .oauth-divider::before,
-        .oauth-divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: rgba(0, 0, 0, 0.15);
-        }
-
-        .oauth-divider span {
-            padding: 0 12px;
-        }
-
-        .oauth-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .oauth-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
+        .auth-footer .btn-secondary {
             width: 100%;
             padding: 12px;
-            border: 1px solid rgba(0, 0, 0, 0.15);
-            border-radius: 10px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s, transform 0.1s;
+            background: transparent;
+            border: 2px solid #e8e4de;
+            color: var(--muted);
+            font-size: 0.9rem;
         }
 
-        .oauth-btn:hover {
-            transform: translateY(-1px);
+        .auth-footer .btn-secondary:hover {
+            border-color: #d0ccc4;
+            background: #fff;
+            color: var(--ink);
         }
 
-        .oauth-btn.discord {
-            background: #5865F2;
-            color: white;
-            border-color: #5865F2;
-        }
-
-        .oauth-btn.discord:hover {
-            background: #4752c4;
-        }
-
-        .oauth-btn.github {
-            background: #24292e;
-            color: white;
-            border-color: #24292e;
-        }
-
-        .oauth-btn.github:hover {
-            background: #1b1f23;
-        }
-
-        .oauth-btn.google {
-            background: white;
-            color: #333;
-        }
-
-        .oauth-btn.google:hover {
-            background: #f5f5f5;
-        }
-
-        .oauth-btn svg {
-            width: 20px;
-            height: 20px;
+        .auth-footer p {
+            margin: 10px 0 0 0;
+            font-size: 0.75rem;
+            color: #999;
         }
 
         /* User Info in Header */
@@ -1094,64 +1178,67 @@
     <!-- Auth Modal -->
     <div class="auth-overlay" id="authOverlay">
         <div class="auth-modal">
-            <h2>Welcome</h2>
-            <p>Sign in to sync your tasks across devices</p>
-            <div class="auth-tabs">
-                <button class="auth-tab active" data-auth-tab="login">Login</button>
-                <button class="auth-tab" data-auth-tab="register">Register</button>
-            </div>
-            <div class="auth-error" id="authError"></div>
-
-            <!-- Login Form -->
-            <form class="auth-form active" id="loginForm">
-                <div class="form-group">
-                    <label for="loginUsername">Username</label>
-                    <input type="text" id="loginUsername" placeholder="Enter username" autocomplete="username">
-                </div>
-                <div class="form-group">
-                    <label for="loginPassword">Password</label>
-                    <input type="password" id="loginPassword" placeholder="Enter password" autocomplete="current-password">
-                </div>
-                <button type="submit" class="btn btn-primary">Login</button>
-            </form>
-
-            <!-- Register Form -->
-            <form class="auth-form" id="registerForm">
-                <div class="form-group">
-                    <label for="registerUsername">Username</label>
-                    <input type="text" id="registerUsername" placeholder="Choose a username (3-30 chars)" autocomplete="username">
-                </div>
-                <div class="form-group">
-                    <label for="registerPassword">Password</label>
-                    <input type="password" id="registerPassword" placeholder="Choose a password (6+ chars)" autocomplete="new-password">
-                </div>
-                <div class="form-group">
-                    <label for="registerConfirm">Confirm Password</label>
-                    <input type="password" id="registerConfirm" placeholder="Confirm your password" autocomplete="new-password">
-                </div>
-                <button type="submit" class="btn btn-primary">Create Account</button>
-            </form>
-
-            <div class="oauth-divider"><span>or continue with</span></div>
-
-            <div class="oauth-buttons">
-                <button type="button" class="oauth-btn discord" onclick="window.location.href='/api/oauth/discord'">
-                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
-                    Discord
-                </button>
-                <button type="button" class="oauth-btn github" onclick="window.location.href='/api/oauth/github'">
-                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
-                    GitHub
-                </button>
-                <button type="button" class="oauth-btn google" onclick="window.location.href='/api/oauth/google'">
-                    <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-                    Google
-                </button>
+            <div class="auth-header">
+                <h2>Welcome back</h2>
+                <p>Sign in to sync your tasks across devices</p>
             </div>
 
-            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(0,0,0,0.1); text-align: center;">
-                <button type="button" class="btn btn-secondary" id="continueWithoutAccount" style="width: 100%;">Continue without account</button>
-                <p style="margin-top: 8px; font-size: 0.8rem; color: var(--muted);">Tasks will only be saved locally</p>
+            <div class="auth-body">
+                <div class="oauth-buttons">
+                    <button type="button" class="oauth-btn discord" onclick="window.location.href='/api/oauth/discord'" title="Continue with Discord">
+                        <svg viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+                    </button>
+                    <button type="button" class="oauth-btn github" onclick="window.location.href='/api/oauth/github'" title="Continue with GitHub">
+                        <svg viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                    </button>
+                    <button type="button" class="oauth-btn google" onclick="window.location.href='/api/oauth/google'" title="Continue with Google">
+                        <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                    </button>
+                </div>
+
+                <div class="auth-divider"><span>or use email</span></div>
+
+                <div class="auth-tabs">
+                    <button class="auth-tab active" data-auth-tab="login">Sign in</button>
+                    <button class="auth-tab" data-auth-tab="register">Create account</button>
+                </div>
+
+                <div class="auth-error" id="authError"></div>
+
+                <!-- Login Form -->
+                <form class="auth-form active" id="loginForm">
+                    <div class="form-group">
+                        <label for="loginUsername">Username</label>
+                        <input type="text" id="loginUsername" placeholder="Enter your username" autocomplete="username">
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" placeholder="Enter your password" autocomplete="current-password">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Sign in</button>
+                </form>
+
+                <!-- Register Form -->
+                <form class="auth-form" id="registerForm">
+                    <div class="form-group">
+                        <label for="registerUsername">Username</label>
+                        <input type="text" id="registerUsername" placeholder="Choose a username" autocomplete="username">
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPassword">Password</label>
+                        <input type="password" id="registerPassword" placeholder="Min. 6 characters" autocomplete="new-password">
+                    </div>
+                    <div class="form-group">
+                        <label for="registerConfirm">Confirm password</label>
+                        <input type="password" id="registerConfirm" placeholder="Confirm your password" autocomplete="new-password">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Create account</button>
+                </form>
+            </div>
+
+            <div class="auth-footer">
+                <button type="button" class="btn btn-secondary" id="continueWithoutAccount">Continue without account</button>
+                <p>Tasks will only be saved on this device</p>
             </div>
         </div>
     </div>
