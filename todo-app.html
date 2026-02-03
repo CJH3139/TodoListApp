@@ -1052,6 +1052,11 @@
                 </div>
                 <button type="submit" class="btn btn-primary">Create Account</button>
             </form>
+
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(0,0,0,0.1); text-align: center;">
+                <button type="button" class="btn btn-secondary" id="continueWithoutAccount" style="width: 100%;">Continue without account</button>
+                <p style="margin-top: 8px; font-size: 0.8rem; color: var(--muted);">Tasks will only be saved locally</p>
+            </div>
         </div>
     </div>
 
@@ -1075,6 +1080,7 @@
                     <span class="username" id="usernameDisplay"></span>
                     <button class="logout-btn" id="logoutBtn">Logout</button>
                 </div>
+                <button class="btn btn-secondary" id="signInBtn" style="display: none;">Sign in</button>
                 <button class="btn btn-primary" id="addTaskBtn">+ Add Task</button>
                 <button class="btn btn-secondary voice-btn" id="voiceAddBtn" title="Add task by voice">🔊</button>
             </div>
@@ -1293,7 +1299,9 @@
             userInfo: document.getElementById('userInfo'),
             usernameDisplay: document.getElementById('usernameDisplay'),
             logoutBtn: document.getElementById('logoutBtn'),
-            syncStatus: document.getElementById('syncStatus')
+            syncStatus: document.getElementById('syncStatus'),
+            continueWithoutAccount: document.getElementById('continueWithoutAccount'),
+            signInBtn: document.getElementById('signInBtn')
         };
 
         const tabButtons = Array.from(document.querySelectorAll('.tab-btn'));
@@ -1317,14 +1325,20 @@
             els.authError.classList.remove('active');
         }
 
-        function updateAuthUI() {
+        function updateAuthUI(showModal = false) {
             if (currentUser && authToken) {
                 els.authOverlay.classList.add('hidden');
                 els.userInfo.style.display = 'flex';
+                els.signInBtn.style.display = 'none';
                 els.usernameDisplay.textContent = currentUser.username;
             } else {
-                els.authOverlay.classList.remove('hidden');
                 els.userInfo.style.display = 'none';
+                els.signInBtn.style.display = 'inline-flex';
+                if (showModal) {
+                    els.authOverlay.classList.remove('hidden');
+                } else {
+                    els.authOverlay.classList.add('hidden');
+                }
             }
         }
 
@@ -1388,8 +1402,23 @@
             currentUser = null;
             localStorage.removeItem(AUTH_TOKEN_KEY);
             localStorage.removeItem(AUTH_USER_KEY);
-            // Reset state but keep local data
-            updateAuthUI();
+            // Clear local tasks on logout
+            localStorage.removeItem(STORAGE_KEY);
+            state.tasks = [];
+            state.schoolCategories = [];
+            state.expanded = new Set();
+            state.ui = {
+                sortBy: 'date-asc',
+                status: 'all',
+                tag: 'all',
+                search: '',
+                today: 'off',
+                page: 'general',
+                section: 'general',
+                category: 'all'
+            };
+            updateAuthUI(true);
+            render();
         }
 
         async function verifyToken() {
@@ -2668,12 +2697,14 @@
                 return;
             }
             try {
+                // Clear local tasks before registering (fresh start)
+                localStorage.removeItem(STORAGE_KEY);
+                state.tasks = [];
+                state.schoolCategories = [];
+                state.expanded = new Set();
+
                 await register(username, password);
                 updateAuthUI();
-                // After registration, sync any existing local tasks to server
-                if (state.tasks.length > 0) {
-                    await syncTasksToServer();
-                }
                 render();
             } catch (err) {
                 showAuthError(err.message);
@@ -2686,15 +2717,29 @@
             }
         });
 
+        els.continueWithoutAccount.addEventListener('click', () => {
+            updateAuthUI(false);
+        });
+
+        els.signInBtn.addEventListener('click', () => {
+            updateAuthUI(true);
+        });
+
         // ===== INITIALIZATION =====
         async function init() {
-            updateAuthUI();
             if (authToken) {
                 const valid = await verifyToken();
-                if (!valid) {
+                if (valid) {
+                    updateAuthUI(false);
+                } else {
                     // Token was invalid, show login
-                    updateAuthUI();
+                    updateAuthUI(true);
                 }
+            } else {
+                // No token - check if they have local data (returning guest user)
+                const hasLocalData = localStorage.getItem(STORAGE_KEY);
+                // Show modal only if no local data (first time visitor)
+                updateAuthUI(!hasLocalData);
             }
             await loadState();
         }
