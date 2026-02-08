@@ -800,7 +800,7 @@ function initTelegramBot() {
             bot.sendMessage(chatId, formatTaskConfirmation(task), { parse_mode: 'Markdown' });
         } catch (err) {
             console.error('Telegram message error:', err);
-            bot.sendMessage(chatId, 'Sorry, I could not create a task from that message. Please try again.');
+            bot.sendMessage(chatId, `Error: ${err.message || 'Unknown error'}. Please try again.`);
         }
     });
 
