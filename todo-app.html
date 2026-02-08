@@ -1491,6 +1491,287 @@
             color: var(--accent-hover);
         }
 
+        /* Archive Toggle */
+        .archive-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .archive-toggle.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        .archive-count {
+            background: var(--paper-2);
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .archive-toggle.active .archive-count {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+
+        .archive-banner {
+            background: var(--warn-light);
+            color: #92400e;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        [data-theme="dark"] .archive-banner {
+            background: var(--warn-light);
+            color: var(--warn);
+        }
+
+        .task-card.archived {
+            opacity: 0.7;
+            border-style: dashed;
+        }
+
+        /* Calendar Styles */
+        .calendar-container {
+            padding: 24px;
+        }
+
+        .calendar-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .calendar-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            min-width: 200px;
+            text-align: center;
+        }
+
+        .calendar-header .btn-ghost {
+            font-size: 1rem;
+            padding: 8px 12px;
+        }
+
+        .calendar-header .btn-secondary {
+            margin-left: auto;
+        }
+
+        .calendar-grid {
+            background: var(--paper);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .calendar-weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            background: var(--paper-2);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .calendar-weekdays > div {
+            padding: 12px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: var(--muted);
+            text-transform: uppercase;
+        }
+
+        .calendar-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+        }
+
+        .calendar-day {
+            min-height: 100px;
+            padding: 8px;
+            border-right: 1px solid var(--border-light);
+            border-bottom: 1px solid var(--border-light);
+            background: var(--paper);
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .calendar-day:nth-child(7n) {
+            border-right: none;
+        }
+
+        .calendar-day:hover {
+            background: var(--paper-2);
+        }
+
+        .calendar-day.other-month {
+            background: var(--paper-2);
+            color: var(--light);
+        }
+
+        .calendar-day.today {
+            background: var(--accent-light);
+        }
+
+        .calendar-day.today .day-number {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .day-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-bottom: 4px;
+        }
+
+        .calendar-tasks {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .calendar-task {
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .calendar-task:hover {
+            transform: scale(1.02);
+        }
+
+        .calendar-task.priority-1 { background: var(--good-light); color: #059669; }
+        .calendar-task.priority-2 { background: #fef9c3; color: #a16207; }
+        .calendar-task.priority-3 { background: var(--warn-light); color: #b45309; }
+        .calendar-task.priority-4 { background: #fed7aa; color: #c2410c; }
+        .calendar-task.priority-5 { background: var(--bad-light); color: var(--bad); }
+
+        .calendar-task.completed {
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+
+        .calendar-more {
+            font-size: 0.7rem;
+            color: var(--muted);
+            padding: 2px 6px;
+            cursor: pointer;
+        }
+
+        .calendar-more:hover {
+            color: var(--accent);
+        }
+
+        /* Day Modal */
+        .day-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .day-modal-overlay.hidden {
+            display: none;
+        }
+
+        .day-modal {
+            background: var(--paper);
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 400px;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .day-modal-header {
+            padding: 16px 20px;
+            background: var(--header-bg);
+            color: var(--header-text);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .day-modal-header h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .day-modal-close {
+            background: transparent;
+            border: none;
+            color: inherit;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 4px;
+            line-height: 1;
+        }
+
+        .day-modal-body {
+            padding: 16px 20px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .day-modal-tasks {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .day-modal-task {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: var(--paper-2);
+            border-radius: 8px;
+            font-size: 0.875rem;
+        }
+
+        .day-modal-task.completed {
+            text-decoration: line-through;
+            color: var(--muted);
+        }
+
+        .day-modal-empty {
+            text-align: center;
+            color: var(--muted);
+            padding: 24px;
+        }
+
+        .day-modal-footer {
+            padding: 12px 20px;
+            border-top: 1px solid var(--border);
+        }
+
         @media (max-width: 860px) {
             header {
                 grid-template-columns: 1fr;
@@ -1565,6 +1846,31 @@
             .category-section-header {
                 flex-direction: column;
                 align-items: flex-start;
+            }
+
+            .calendar-day {
+                min-height: 70px;
+                padding: 4px;
+            }
+
+            .day-number {
+                width: 24px;
+                height: 24px;
+                font-size: 0.75rem;
+            }
+
+            .calendar-task {
+                font-size: 0.6rem;
+                padding: 2px 4px;
+            }
+
+            .calendar-title {
+                font-size: 1.1rem;
+                min-width: 140px;
+            }
+
+            .archive-toggle .archive-label {
+                display: none;
             }
         }
     </style>
@@ -1649,6 +1955,7 @@
                     <button class="tab-btn" data-page="about">About</button>
                     <button class="tab-btn" data-page="general">General</button>
                     <button class="tab-btn" data-page="school">School</button>
+                    <button class="tab-btn" data-page="calendar">Calendar</button>
                 </nav>
             </div>
             <div class="header-actions">
@@ -1678,7 +1985,30 @@
                 <p><strong>Guest mode:</strong> Use without an account — tasks are saved locally in your browser.</p>
                 <p><strong>With account:</strong> Sign in to sync your tasks across all your devices. Supports Discord, GitHub, and Google authentication.</p>
                 <p><strong>Features:</strong> Task priorities, tags, subtasks, recurring tasks, voice input, dark/light themes, and cloud sync.</p>
-                <p>Version 1.1.1 · For support, contact @cjh1126 on Discord</p>
+                <p>Version 1.1.1 · For support, contact @cjh1126</p>
+            </div>
+        </div>
+
+        <div id="calendarPage" class="page">
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <button class="btn btn-ghost" id="calendarPrev">◀</button>
+                    <h2 class="calendar-title" id="calendarTitle">January 2025</h2>
+                    <button class="btn btn-ghost" id="calendarNext">▶</button>
+                    <button class="btn btn-secondary" id="calendarToday">Today</button>
+                </div>
+                <div class="calendar-grid">
+                    <div class="calendar-weekdays">
+                        <div>Sun</div>
+                        <div>Mon</div>
+                        <div>Tue</div>
+                        <div>Wed</div>
+                        <div>Thu</div>
+                        <div>Fri</div>
+                        <div>Sat</div>
+                    </div>
+                    <div class="calendar-days" id="calendarDays"></div>
+                </div>
             </div>
         </div>
 
@@ -1715,6 +2045,11 @@
                         <option value="completed">Completed</option>
                     </select>
                 </div>
+                <button class="btn btn-secondary archive-toggle" id="archiveToggle">
+                    <span class="archive-icon">📦</span>
+                    <span class="archive-label">Archive</span>
+                    <span class="archive-count" id="archiveCount">0</span>
+                </button>
                 <details class="filters">
                     <summary>Filters</summary>
                     <div class="filters-panel">
@@ -1813,6 +2148,22 @@
         </div>
     </div>
 
+    <!-- Day Modal for Calendar -->
+    <div class="day-modal-overlay hidden" id="dayModalOverlay">
+        <div class="day-modal">
+            <div class="day-modal-header">
+                <h3 id="dayModalTitle">January 1, 2025</h3>
+                <button class="day-modal-close" id="dayModalClose">&times;</button>
+            </div>
+            <div class="day-modal-body">
+                <div class="day-modal-tasks" id="dayModalTasks"></div>
+            </div>
+            <div class="day-modal-footer">
+                <button class="btn btn-primary" id="dayModalAddTask">+ Add Task for This Day</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const STORAGE_KEY = 'todo-atlas.v2';
         const STORAGE_VERSION = 3;
@@ -1830,6 +2181,7 @@
         let state = {
             version: STORAGE_VERSION,
             tasks: [],
+            archivedTasks: [],
             expanded: new Set(),
             schoolCategories: [],
             ui: {
@@ -1841,7 +2193,10 @@
                 page: 'general',
                 section: 'general',
                 category: 'all',
-                theme: 'general'
+                theme: 'general',
+                showArchive: false,
+                calendarMonth: new Date().getMonth(),
+                calendarYear: new Date().getFullYear()
             }
         };
 
@@ -1891,7 +2246,23 @@
             logoutBtn: document.getElementById('logoutBtn'),
             syncStatus: document.getElementById('syncStatus'),
             continueWithoutAccount: document.getElementById('continueWithoutAccount'),
-            signInBtn: document.getElementById('signInBtn')
+            signInBtn: document.getElementById('signInBtn'),
+            // Archive elements
+            archiveToggle: document.getElementById('archiveToggle'),
+            archiveCount: document.getElementById('archiveCount'),
+            // Calendar elements
+            calendarPage: document.getElementById('calendarPage'),
+            calendarTitle: document.getElementById('calendarTitle'),
+            calendarDays: document.getElementById('calendarDays'),
+            calendarPrev: document.getElementById('calendarPrev'),
+            calendarNext: document.getElementById('calendarNext'),
+            calendarToday: document.getElementById('calendarToday'),
+            // Day modal elements
+            dayModalOverlay: document.getElementById('dayModalOverlay'),
+            dayModalTitle: document.getElementById('dayModalTitle'),
+            dayModalTasks: document.getElementById('dayModalTasks'),
+            dayModalClose: document.getElementById('dayModalClose'),
+            dayModalAddTask: document.getElementById('dayModalAddTask')
         };
 
         const tabButtons = Array.from(document.querySelectorAll('.tab-btn'));
@@ -1923,6 +2294,217 @@
 
         // Initialize theme immediately (don't save on init)
         initTheme();
+
+        // Archive functions
+        function archiveTask(taskId) {
+            const taskIndex = state.tasks.findIndex(t => t.id === taskId);
+            if (taskIndex !== -1) {
+                const task = state.tasks.splice(taskIndex, 1)[0];
+                task.archivedAt = new Date().toISOString();
+                state.archivedTasks.push(task);
+                saveState();
+                render();
+            }
+        }
+
+        function unarchiveTask(taskId) {
+            const taskIndex = state.archivedTasks.findIndex(t => t.id === taskId);
+            if (taskIndex !== -1) {
+                const task = state.archivedTasks.splice(taskIndex, 1)[0];
+                delete task.archivedAt;
+                state.tasks.push(task);
+                saveState();
+                render();
+            }
+        }
+
+        function toggleArchiveView() {
+            state.ui.showArchive = !state.ui.showArchive;
+            els.archiveToggle.classList.toggle('active', state.ui.showArchive);
+            render();
+        }
+
+        function updateArchiveCount() {
+            els.archiveCount.textContent = state.archivedTasks.length;
+        }
+
+        // Calendar functions
+        const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
+                        'July', 'August', 'September', 'October', 'November', 'December'];
+
+        function renderCalendar() {
+            const year = state.ui.calendarYear;
+            const month = state.ui.calendarMonth;
+
+            els.calendarTitle.textContent = `${MONTHS[month]} ${year}`;
+
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startDay = firstDay.getDay();
+            const daysInMonth = lastDay.getDate();
+
+            // Get days from previous month
+            const prevMonth = new Date(year, month, 0);
+            const daysInPrevMonth = prevMonth.getDate();
+
+            const today = new Date();
+            const todayStr = today.toISOString().split('T')[0];
+
+            let html = '';
+            let dayCount = 1;
+            let nextMonthDay = 1;
+
+            // Calculate total cells needed (6 rows max)
+            const totalCells = Math.ceil((startDay + daysInMonth) / 7) * 7;
+
+            for (let i = 0; i < totalCells; i++) {
+                let dayNum, dateStr, isOtherMonth = false;
+
+                if (i < startDay) {
+                    // Previous month
+                    dayNum = daysInPrevMonth - startDay + i + 1;
+                    const prevMonthNum = month === 0 ? 11 : month - 1;
+                    const prevYear = month === 0 ? year - 1 : year;
+                    dateStr = `${prevYear}-${String(prevMonthNum + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+                    isOtherMonth = true;
+                } else if (dayCount <= daysInMonth) {
+                    // Current month
+                    dayNum = dayCount;
+                    dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+                    dayCount++;
+                } else {
+                    // Next month
+                    dayNum = nextMonthDay;
+                    const nextMonthNum = month === 11 ? 0 : month + 1;
+                    const nextYear = month === 11 ? year + 1 : year;
+                    dateStr = `${nextYear}-${String(nextMonthNum + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+                    nextMonthDay++;
+                    isOtherMonth = true;
+                }
+
+                const isToday = dateStr === todayStr;
+                const tasksForDay = state.tasks.filter(t => t.date === dateStr);
+
+                html += `
+                    <div class="calendar-day ${isOtherMonth ? 'other-month' : ''} ${isToday ? 'today' : ''}"
+                         data-date="${dateStr}">
+                        <div class="day-number">${dayNum}</div>
+                        <div class="calendar-tasks">
+                            ${tasksForDay.slice(0, 3).map(task => `
+                                <div class="calendar-task priority-${task.priority} ${task.completed ? 'completed' : ''}"
+                                     data-task-id="${task.id}" title="${task.name}">
+                                    ${task.name}
+                                </div>
+                            `).join('')}
+                            ${tasksForDay.length > 3 ? `<div class="calendar-more">+${tasksForDay.length - 3} more</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+
+            els.calendarDays.innerHTML = html;
+
+            // Add click handlers
+            els.calendarDays.querySelectorAll('.calendar-day').forEach(day => {
+                day.addEventListener('click', (e) => {
+                    if (!e.target.closest('.calendar-task')) {
+                        openDayModal(day.dataset.date);
+                    }
+                });
+            });
+
+            els.calendarDays.querySelectorAll('.calendar-task').forEach(task => {
+                task.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const taskId = task.dataset.taskId;
+                    // Toggle expand and scroll to task
+                    state.expanded.add(taskId);
+                    setPage('general');
+                    render();
+                    setTimeout(() => {
+                        const taskEl = document.querySelector(`[data-task-id="${taskId}"]`);
+                        if (taskEl) taskEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 100);
+                });
+            });
+        }
+
+        function openDayModal(dateStr) {
+            const date = new Date(dateStr + 'T00:00:00');
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            els.dayModalTitle.textContent = date.toLocaleDateString('en-US', options);
+
+            const tasksForDay = state.tasks.filter(t => t.date === dateStr);
+
+            if (tasksForDay.length === 0) {
+                els.dayModalTasks.innerHTML = '<div class="day-modal-empty">No tasks for this day</div>';
+            } else {
+                els.dayModalTasks.innerHTML = tasksForDay.map(task => `
+                    <div class="day-modal-task ${task.completed ? 'completed' : ''}">
+                        <input type="checkbox" ${task.completed ? 'checked' : ''}
+                               onchange="toggleTaskFromModal('${task.id}')">
+                        <span class="priority-badge priority-${task.priority}">P${task.priority}</span>
+                        <span>${task.name}</span>
+                    </div>
+                `).join('');
+            }
+
+            els.dayModalAddTask.onclick = () => {
+                closeDayModal();
+                setPage('general');
+                els.taskDate.value = dateStr;
+                els.addTaskForm.classList.add('active');
+                els.taskName.focus();
+            };
+
+            els.dayModalOverlay.classList.remove('hidden');
+        }
+
+        function closeDayModal() {
+            els.dayModalOverlay.classList.add('hidden');
+        }
+
+        window.toggleTaskFromModal = function(taskId) {
+            const task = state.tasks.find(t => t.id === taskId);
+            if (task) {
+                task.completed = !task.completed;
+                saveState();
+                openDayModal(task.date);
+                renderCalendar();
+            }
+        };
+
+        function navigateCalendar(delta) {
+            state.ui.calendarMonth += delta;
+            if (state.ui.calendarMonth > 11) {
+                state.ui.calendarMonth = 0;
+                state.ui.calendarYear++;
+            } else if (state.ui.calendarMonth < 0) {
+                state.ui.calendarMonth = 11;
+                state.ui.calendarYear--;
+            }
+            renderCalendar();
+        }
+
+        function goToToday() {
+            const today = new Date();
+            state.ui.calendarMonth = today.getMonth();
+            state.ui.calendarYear = today.getFullYear();
+            renderCalendar();
+        }
+
+        // Calendar event listeners
+        els.calendarPrev.addEventListener('click', () => navigateCalendar(-1));
+        els.calendarNext.addEventListener('click', () => navigateCalendar(1));
+        els.calendarToday.addEventListener('click', goToToday);
+        els.dayModalClose.addEventListener('click', closeDayModal);
+        els.dayModalOverlay.addEventListener('click', (e) => {
+            if (e.target === els.dayModalOverlay) closeDayModal();
+        });
+
+        // Archive event listener
+        els.archiveToggle.addEventListener('click', toggleArchiveView);
+
         let dragCategoryName = null;
         let dragGhost = null;
         let dragOverChip = null;
@@ -2534,15 +3116,27 @@
                 btn.classList.toggle('active', isActive);
             });
 
+            // Hide all pages first
+            els.aboutPage.classList.remove('active');
+            els.appPage.classList.remove('active');
+            els.calendarPage.classList.remove('active');
+
             if (state.ui.page === 'about') {
                 els.aboutPage.classList.add('active');
-                els.appPage.classList.remove('active');
                 els.addTaskBtn.style.display = 'none';
+                els.voiceAddBtn.style.display = 'none';
                 els.addTaskForm.classList.remove('active');
                 return;
             }
 
-            els.aboutPage.classList.remove('active');
+            if (state.ui.page === 'calendar') {
+                els.calendarPage.classList.add('active');
+                els.addTaskBtn.style.display = 'none';
+                els.voiceAddBtn.style.display = 'none';
+                els.addTaskForm.classList.remove('active');
+                return;
+            }
+
             els.appPage.classList.add('active');
             const isSchool = state.ui.section === 'school';
             els.addTaskBtn.style.display = isSchool ? 'none' : 'inline-flex';
@@ -2571,9 +3165,17 @@
 
         function render() {
             applyPageState();
+            updateArchiveCount();
+
             if (state.ui.page === 'about') {
                 return;
             }
+
+            if (state.ui.page === 'calendar') {
+                renderCalendar();
+                return;
+            }
+
             if (state.ui.section === 'school') {
                 renderCategories();
             }
@@ -2583,6 +3185,29 @@
             els.tagFilter.value = state.ui.tag;
             els.todayToggle.value = state.ui.today;
             els.searchInput.value = state.ui.search;
+
+            // Handle archive view
+            if (state.ui.showArchive) {
+                const archivedTasks = state.archivedTasks || [];
+                if (archivedTasks.length === 0) {
+                    els.taskContainer.innerHTML = `
+                        <div class="archive-banner">
+                            <span>📦 Viewing Archive</span>
+                        </div>
+                        <div class="empty-state">
+                            <strong>No archived tasks</strong>
+                            <span>Completed tasks can be archived from the task menu.</span>
+                        </div>
+                    `;
+                } else {
+                    els.taskContainer.innerHTML = `
+                        <div class="archive-banner">
+                            <span>📦 Viewing Archive (${archivedTasks.length} tasks)</span>
+                        </div>
+                    ` + archivedTasks.map(task => taskTemplate(task, true)).join('');
+                }
+                return;
+            }
 
             const tasks = filteredTasks();
             if (state.ui.section === 'school') {
@@ -2660,7 +3285,7 @@
                 </div>
             `;
         }
-        function taskTemplate(task) {
+        function taskTemplate(task, isArchived = false) {
             const isExpanded = state.expanded.has(task.id);
             const status = dueStatus(task.date);
             const completedSubtasks = task.subtasks.filter(s => s.completed).length;
@@ -2668,9 +3293,13 @@
                 ? Math.round((completedSubtasks / task.subtasks.length) * 100)
                 : (task.completed ? 100 : 0);
 
+            const archiveBtn = isArchived
+                ? `<button class="btn btn-secondary" data-action="unarchive-task">Restore</button>`
+                : `<button class="btn btn-secondary" data-action="archive-task">Archive</button>`;
+
             return `
-                <div class="task-wrapper" data-id="${task.id}">
-                    <div class="task-card ${task.completed ? 'completed' : ''}">
+                <div class="task-wrapper" data-id="${task.id}" ${isArchived ? 'data-archived="true"' : ''}>
+                    <div class="task-card ${task.completed ? 'completed' : ''} ${isArchived ? 'archived' : ''}">
                         <div class="task-left">
                             <button class="caret-btn ${isExpanded ? 'open' : ''}" data-action="toggle-expand" aria-label="Toggle details">^</button>
                             <input type="checkbox" aria-label="Complete task" data-action="toggle-complete" ${task.completed ? 'checked' : ''}>
@@ -2681,7 +3310,8 @@
                             <details class="action-menu">
                                 <summary aria-label="Task menu">...</summary>
                                 <div class="menu">
-                                    <button class="btn btn-secondary" data-action="edit-task">Edit</button>
+                                    ${!isArchived ? `<button class="btn btn-secondary" data-action="edit-task">Edit</button>` : ''}
+                                    ${archiveBtn}
                                     <button class="btn btn-danger" data-action="delete-task">Delete</button>
                                 </div>
                             </details>

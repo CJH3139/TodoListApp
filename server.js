@@ -1,9 +1,11 @@
 const path = require('path');
+const crypto = require('crypto');
 const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { createClient } = require('@libsql/client');
+const TelegramBot = require('node-telegram-bot-api');
 require('dotenv').config();
 
 const app = express();
@@ -65,6 +67,17 @@ async function initDatabase() {
             user_id INTEGER NOT NULL,
             task_data TEXT NOT NULL,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+    `);
+
+    await db.execute(`
+        CREATE TABLE IF NOT EXISTS telegram_users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            telegram_chat_id TEXT UNIQUE NOT NULL,
+            user_id INTEGER NOT NULL,
+            username TEXT NOT NULL,
+            linked_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users(id)
         )
     `);
@@ -518,11 +531,289 @@ function extractOutputText(data) {
     return parts.join('');
 }
 
+// ── Telegram Bot ──────────────────────────────────────────────────────────
+
+async function linkTelegramUser(chatId, username, password) {
+    const result = await db.execute({
+        sql: 'SELECT * FROM users WHERE username = ?',
+        args: [username]
+    });
+    if (result.rows.length === 0) {
+        return { ok: false, message: 'Invalid username or password.' };
+    }
+    const user = result.rows[0];
+    if (!user.password_hash) {
+        return { ok: false, message: `This account uses OAuth login (${user.oauth_provider}). You need a password-based account to link via Telegram.` };
+    }
+    if (!bcrypt.compareSync(password, user.password_hash)) {
+        return { ok: false, message: 'Invalid username or password.' };
+    }
+    // Upsert: replace any existing link for this chat
+    await db.execute({
+        sql: `INSERT INTO telegram_users (telegram_chat_id, user_id, username)
+              VALUES (?, ?, ?)
+              ON CONFLICT(telegram_chat_id) DO UPDATE SET user_id = excluded.user_id, username = excluded.username, linked_at = CURRENT_TIMESTAMP`,
+        args: [String(chatId), user.id, user.username]
+    });
+    return { ok: true, message: `Logged in as *${user.username}*. You can now send me tasks!` };
+}
+
+async function getLinkedUser(chatId) {
+    const result = await db.execute({
+        sql: 'SELECT user_id, username FROM telegram_users WHERE telegram_chat_id = ?',
+        args: [String(chatId)]
+    });
+    if (result.rows.length === 0) return null;
+    return { user_id: result.rows[0].user_id, username: result.rows[0].username };
+}
+
+async function unlinkTelegramUser(chatId) {
+    const result = await db.execute({
+        sql: 'DELETE FROM telegram_users WHERE telegram_chat_id = ?',
+        args: [String(chatId)]
+    });
+    return result.rowsAffected > 0;
+}
+
+async function parseTelegramMessage(text) {
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) throw new Error('OPENAI_API_KEY is not configured on the server.');
+
+    const today = new Date().toISOString().split('T')[0];
+    const systemPrompt = [
+        'You convert a chat message into structured JSON for a todo app.',
+        'Rules:',
+        '- Always return valid JSON that matches the schema exactly.',
+        '- Use YYYY-MM-DD for date. If no date is given, use today.',
+        '- If a date is given without a year, assume the current year based on "today".',
+        '- Priority is 1-5. Map phrases like "low/pretty low" => 2, "medium" => 3, "high/urgent" => 5.',
+        '- If no priority is mentioned, default to 3.',
+        '- If recurrence is not specified, use "none".',
+        '- Keep tags short (0-4).',
+        '- Notes should include any extra details not in the title.',
+        `Today is ${today}.`
+    ].join('\n');
+
+    const response = await fetch('https://api.openai.com/v1/responses', {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${apiKey}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            input: [
+                { role: 'system', content: [{ type: 'input_text', text: systemPrompt }] },
+                { role: 'user', content: [{ type: 'input_text', text: `User said: ${text}` }] }
+            ],
+            text: {
+                format: {
+                    type: 'json_schema',
+                    json_schema: {
+                        name: 'todo_task',
+                        strict: true,
+                        schema: {
+                            type: 'object',
+                            additionalProperties: false,
+                            properties: {
+                                name: { type: 'string' },
+                                date: { type: 'string' },
+                                priority: { type: 'integer', minimum: 1, maximum: 5 },
+                                tags: { type: 'array', items: { type: 'string' } },
+                                notes: { type: 'string' },
+                                recurrence: {
+                                    type: 'string',
+                                    enum: ['none', 'daily', 'weekly', 'monthly']
+                                }
+                            },
+                            required: ['name', 'date', 'priority', 'tags', 'notes', 'recurrence']
+                        }
+                    }
+                }
+            }
+        })
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`OpenAI error (${response.status}): ${errorText}`);
+    }
+
+    const data = await response.json();
+    return JSON.parse(extractOutputText(data));
+}
+
+async function createTaskFromTelegram(userId, parsedTask) {
+    const today = new Date().toISOString().split('T')[0];
+    const task = {
+        id: crypto.randomUUID(),
+        name: parsedTask.name,
+        date: parsedTask.date || today,
+        priority: parsedTask.priority || 3,
+        completed: false,
+        subtasks: [],
+        tags: Array.isArray(parsedTask.tags) ? parsedTask.tags : [],
+        category: '',
+        notes: parsedTask.notes || '',
+        recurrence: parsedTask.recurrence || 'none',
+        section: 'general',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+    };
+
+    // Fetch existing task blob
+    const result = await db.execute({
+        sql: 'SELECT task_data FROM tasks WHERE user_id = ?',
+        args: [userId]
+    });
+
+    let blob = { tasks: [], schoolCategories: [], ui: {} };
+    if (result.rows.length > 0) {
+        blob = JSON.parse(result.rows[0].task_data);
+    }
+
+    // Add task to front of array
+    if (!Array.isArray(blob.tasks)) blob.tasks = [];
+    blob.tasks.unshift(task);
+
+    const taskData = JSON.stringify(blob);
+
+    if (result.rows.length > 0) {
+        await db.execute({
+            sql: 'UPDATE tasks SET task_data = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?',
+            args: [taskData, userId]
+        });
+    } else {
+        await db.execute({
+            sql: 'INSERT INTO tasks (user_id, task_data) VALUES (?, ?)',
+            args: [userId, taskData]
+        });
+    }
+
+    return task;
+}
+
+function formatTaskConfirmation(task) {
+    const priorityLabels = { 1: 'Very Low', 2: 'Low', 3: 'Medium', 4: 'High', 5: 'Urgent' };
+    let msg = `*Task added!*\n\n`;
+    msg += `*${task.name}*\n`;
+    msg += `Date: ${task.date}\n`;
+    msg += `Priority: ${priorityLabels[task.priority] || task.priority}\n`;
+    if (task.tags.length > 0) msg += `Tags: ${task.tags.join(', ')}\n`;
+    if (task.notes) msg += `Notes: ${task.notes}\n`;
+    if (task.recurrence !== 'none') msg += `Recurrence: ${task.recurrence}\n`;
+    return msg;
+}
+
+function initTelegramBot() {
+    const token = process.env.TELEGRAM_BOT_TOKEN;
+    if (!token) return null;
+
+    let bot;
+    try {
+        bot = new TelegramBot(token, { polling: true });
+    } catch (err) {
+        console.warn('Failed to initialize Telegram bot:', err.message);
+        return null;
+    }
+
+    bot.on('polling_error', (err) => {
+        console.error('Telegram polling error:', err.message);
+    });
+
+    // /start command
+    bot.onText(/\/start/, async (msg) => {
+        const chatId = msg.chat.id;
+        try {
+            const linked = await getLinkedUser(chatId);
+            if (linked) {
+                bot.sendMessage(chatId, `Welcome back, *${linked.username}*! Just send me a message and I'll create a task for you.`, { parse_mode: 'Markdown' });
+            } else {
+                bot.sendMessage(chatId,
+                    `Welcome to TodoListApp Bot!\n\nTo get started, link your account:\n/login <username> <password>\n\nOnce linked, just send me any message and I'll turn it into a task.\n\n_Note: The message containing your password will be deleted for security, but consider using this in a private chat._`,
+                    { parse_mode: 'Markdown' }
+                );
+            }
+        } catch (err) {
+            console.error('Telegram /start error:', err);
+            bot.sendMessage(chatId, 'Something went wrong. Please try again.');
+        }
+    });
+
+    // /login command
+    bot.onText(/\/login\s+(\S+)\s+(\S+)/, async (msg, match) => {
+        const chatId = msg.chat.id;
+        const username = match[1];
+        const password = match[2];
+
+        // Try to delete the message containing the password
+        try {
+            await bot.deleteMessage(chatId, msg.message_id);
+        } catch {
+            // If deletion fails (bot may not have permission), warn the user
+            bot.sendMessage(chatId, '_Could not delete your login message. You may want to delete it manually for security._', { parse_mode: 'Markdown' });
+        }
+
+        try {
+            const result = await linkTelegramUser(chatId, username, password);
+            bot.sendMessage(chatId, result.message, { parse_mode: 'Markdown' });
+        } catch (err) {
+            console.error('Telegram /login error:', err);
+            bot.sendMessage(chatId, 'Something went wrong during login. Please try again.');
+        }
+    });
+
+    // /logout command
+    bot.onText(/\/logout/, async (msg) => {
+        const chatId = msg.chat.id;
+        try {
+            const removed = await unlinkTelegramUser(chatId);
+            if (removed) {
+                bot.sendMessage(chatId, 'You have been logged out. Use /login to link again.');
+            } else {
+                bot.sendMessage(chatId, 'You are not currently logged in.');
+            }
+        } catch (err) {
+            console.error('Telegram /logout error:', err);
+            bot.sendMessage(chatId, 'Something went wrong. Please try again.');
+        }
+    });
+
+    // Handle all other text messages → parse as task
+    bot.on('message', async (msg) => {
+        // Skip commands
+        if (!msg.text || msg.text.startsWith('/')) return;
+
+        const chatId = msg.chat.id;
+        try {
+            const linked = await getLinkedUser(chatId);
+            if (!linked) {
+                bot.sendMessage(chatId, 'Please link your account first with /login <username> <password>');
+                return;
+            }
+
+            // Send typing indicator
+            bot.sendChatAction(chatId, 'typing');
+
+            const parsed = await parseTelegramMessage(msg.text);
+            const task = await createTaskFromTelegram(linked.user_id, parsed);
+            bot.sendMessage(chatId, formatTaskConfirmation(task), { parse_mode: 'Markdown' });
+        } catch (err) {
+            console.error('Telegram message error:', err);
+            bot.sendMessage(chatId, 'Sorry, I could not create a task from that message. Please try again.');
+        }
+    });
+
+    console.log('Telegram bot is running (polling mode)');
+    return bot;
+}
+
 // Start server after database is initialized
 initDatabase().then(() => {
     app.listen(PORT, () => {
         console.log(`TodoListApp server started on port ${PORT}`);
     });
+    initTelegramBot();
 }).catch(err => {
     console.error('Failed to initialize database:', err);
     process.exit(1);
